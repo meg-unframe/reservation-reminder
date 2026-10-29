@@ -11,9 +11,10 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "isolatedModules": true,
+    "resolveJsonModule": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src", "test", "scripts", "vitest.config.ts"]
+  "include": ["src", "test", "scripts", "fixtures/*.json", "vitest.config.ts"]
 }

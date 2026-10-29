@@ -1,0 +1,12 @@
+{
+  "_note": "すべて架空の顧客です。実在の人物・顧客とは関係ありません。登録順にカルテ番号が採番されます。",
+  "customers": [
+    { "familyName": "田中", "givenName": "花子", "familyKana": "タナカ", "givenKana": "ハナコ" },
+    { "familyName": "田中", "givenName": "友子", "familyKana": "タナカ", "givenKana": "トモコ" },
+    { "familyName": "田中", "givenName": "友美", "familyKana": "タナカ", "givenKana": "トモミ" },
+    { "familyName": "佐藤", "givenName": "健", "familyKana": "サトウ", "givenKana": "ケン" },
+    { "familyName": "斉藤", "givenName": "一郎", "familyKana": "サイトウ", "givenKana": "イチロウ" },
+    { "familyName": "斎藤", "givenName": "二郎", "familyKana": "サイトウ", "givenKana": "ジロウ" },
+    { "familyName": "鈴木", "givenName": "三郎", "familyKana": "スズキ", "givenKana": "サブロウ", "deactivate": true }
+  ]
+}

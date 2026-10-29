@@ -1,0 +1,17 @@
+{
+  "_note": "架空の予約。どの日付を指定しても同じ時刻・内容の予定として展開されます（expected は判定の期待値）。",
+  "events": [
+    { "id": "fx-01", "time": "10:00", "minutes": 60, "title": "田中(花)様（0001）", "description": "メニュー: カット", "expected": "notify" },
+    { "id": "fx-02", "time": "11:00", "minutes": 90, "title": "田中(友)様（0002）", "description": "メニュー: カラー", "expected": "notify" },
+    { "id": "fx-03", "time": "12:00", "minutes": 60, "title": "田中(友)様（0003）", "description": "", "expected": "notify" },
+    { "id": "fx-04", "time": "13:00", "minutes": 30, "title": "田中様（0001）", "description": "メニュー: 前髪カット", "expected": "notify", "_comment": "同姓追加前の旧表示名 → タイトル不一致の警告" },
+    { "id": "fx-05", "time": "14:00", "minutes": 60, "title": "佐藤さん（0004）", "description": "", "expected": "review", "_comment": "敬称が「さん」" },
+    { "id": "fx-06", "time": "15:00", "minutes": 60, "title": "斎藤様（0005）", "description": "", "expected": "review", "_comment": "番号は斉藤様。打ち間違い" },
+    { "id": "fx-07", "time": "16:00", "minutes": 60, "title": "鈴木様（0007）", "description": "", "expected": "review", "_comment": "論理削除済み" },
+    { "id": "fx-08", "time": "17:00", "minutes": 60, "title": "山本様（0999）", "description": "", "expected": "review", "_comment": "未登録の番号" },
+    { "id": "fx-09", "allDay": true, "title": "棚卸し", "description": "", "expected": "excluded" },
+    { "id": "fx-10", "time": "09:00", "minutes": 30, "title": "歯医者", "description": "", "expected": "excluded" },
+    { "id": "fx-11", "time": "18:00", "minutes": 60, "title": "斉藤様（0005）", "description": "", "cancelled": true, "expected": "excluded" },
+    { "id": "fx-12", "time": "19:00", "minutes": 60, "title": "斎藤様（０００６）", "description": "メニュー：パーマ", "expected": "notify", "_comment": "全角数字・全角コロン" }
+  ]
+}

@@ -43,6 +43,21 @@ export function toJstMonthKey(instant: Date): string {
   return toJstDateString(instant).slice(0, 7);
 }
 
+/** JST の年月の開始〜翌月開始を UTC の ISO 文字列で返す（UTC で保存した日時との比較用） */
+export function jstMonthRangeUtc(monthKey: string): { from: string; to: string } {
+  const first = `${monthKey}-01`;
+  assertDate(first);
+  const [y, m] = monthKey.split("-").map(Number) as [number, number];
+  const nextFirst = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, "0")}-01`;
+  const toUtc = (date: string) => new Date(`${date}T00:00:00+09:00`).toISOString();
+  return { from: toUtc(first), to: toUtc(nextFirst) };
+}
+
+/** 時刻を「YYYY-MM-DDTHH:mm:ss+09:00」形式にする */
+export function toJstIsoString(instant: Date): string {
+  return `${new Date(instant.getTime() + JST_OFFSET_MS).toISOString().slice(0, 19)}+09:00`;
+}
+
 export interface JstDateTimeParts {
   month: number;
   day: number;
