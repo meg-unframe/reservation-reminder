@@ -4,8 +4,8 @@ export interface Env {
   SEND_MODE: string;
   CALENDAR_SOURCE: string;
   CALENDAR_ID?: string;
-  GOOGLE_SA_EMAIL?: string;
-  GOOGLE_SA_PRIVATE_KEY?: string;
+  /** ローカル開発専用。サービスアカウントの権限借用で手元発行した短時間トークン（秘密鍵は使わない） */
+  GOOGLE_ACCESS_TOKEN?: string;
   ACCESS_TEAM_DOMAIN?: string;
   ACCESS_AUD?: string;
 }
@@ -18,6 +18,7 @@ export interface AppConfig {
   sendMode: "simulation";
   calendarSource: CalendarSourceKind;
   calendarId: string | undefined;
+  googleAccessToken: string | undefined;
 }
 
 export class ConfigError extends Error {
@@ -35,13 +36,21 @@ export function loadConfig(env: Env): AppConfig {
   if (env.CALENDAR_SOURCE !== "fixture" && env.CALENDAR_SOURCE !== "google") {
     throw new ConfigError(`CALENDAR_SOURCE が不正です: "${env.CALENDAR_SOURCE}"`);
   }
-  if (env.CALENDAR_SOURCE === "google" && !env.CALENDAR_ID) {
-    throw new ConfigError("CALENDAR_SOURCE=google の場合は CALENDAR_ID が必要です");
+  if (env.CALENDAR_SOURCE === "google") {
+    // 本番の認証方式は未決定。手元発行トークンの方式はローカル以外で使わせない
+    if (env.ENVIRONMENT !== "local") {
+      throw new ConfigError("CALENDAR_SOURCE=google は現在 ENVIRONMENT=local でのみ使用できます");
+    }
+    if (!env.CALENDAR_ID) throw new ConfigError("CALENDAR_SOURCE=google の場合は CALENDAR_ID が必要です");
+    if (!env.GOOGLE_ACCESS_TOKEN) {
+      throw new ConfigError("CALENDAR_SOURCE=google の場合は GOOGLE_ACCESS_TOKEN が必要です");
+    }
   }
   return {
     environment: env.ENVIRONMENT,
     sendMode: "simulation",
     calendarSource: env.CALENDAR_SOURCE,
     calendarId: env.CALENDAR_ID || undefined,
+    googleAccessToken: env.GOOGLE_ACCESS_TOKEN || undefined,
   };
 }

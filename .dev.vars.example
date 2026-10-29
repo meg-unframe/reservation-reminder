@@ -1,11 +1,13 @@
 # ローカル開発用の環境変数サンプル。`.dev.vars` にコピーして使う（.dev.vars はコミットしない）
 ENVIRONMENT=local
 
-# --- Google連携（ステップ7で使用。テスト用カレンダー専用のサービスアカウント）---
+# --- Google連携（ローカル専用。テスト用カレンダーを共有したサービスアカウント）---
+# 秘密鍵は作らない。gcloud でサービスアカウントの権限を借用し、calendar.readonly の短時間トークン（約1時間）を
+# 発行して GOOGLE_ACCESS_TOKEN に入れる。期限が切れたら再発行し、wrangler dev を再起動する。
 # CALENDAR_SOURCE=google
 # CALENDAR_ID=xxxxxxxx@group.calendar.google.com
-# GOOGLE_SA_EMAIL=reminder-test@your-project.iam.gserviceaccount.com
-# GOOGLE_SA_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+# GOOGLE_SA_EMAIL=reminder-test@your-project.iam.gserviceaccount.com   # トークン発行時に参照（Worker は使わない）
+# GOOGLE_ACCESS_TOKEN=（発行したトークン。チャットやログに貼らない）
 
 # --- Cloudflare Access（本番のみ。ローカルでは不要）---
 # ACCESS_TEAM_DOMAIN=your-team.cloudflareaccess.com

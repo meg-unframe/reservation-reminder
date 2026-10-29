@@ -6,6 +6,7 @@
  * なお Cloudflare Access の公開鍵取得（*.cloudflareaccess.com）は Hono の JWT 検証が内部で行い、
  * チームドメインの形式は accessAuth で検証している。
  */
+// oauth2.googleapis.com は、将来 Worker 内でトークンを取得する認証方式にしたとき用に残している
 const ALLOWED_HOSTS: readonly string[] = ["oauth2.googleapis.com", "www.googleapis.com"];
 
 export class EgressBlockedError extends Error {

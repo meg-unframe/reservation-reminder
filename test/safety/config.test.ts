@@ -22,7 +22,7 @@ describe("デプロイ設定の既定値", () => {
   });
 
   it("秘密情報を [vars] に平文で書いていない", () => {
-    for (const key of ["GOOGLE_SA_PRIVATE_KEY", "GOOGLE_SA_EMAIL", "ACCESS_AUD"]) {
+    for (const key of ["GOOGLE_ACCESS_TOKEN", "GOOGLE_SA_PRIVATE_KEY", "GOOGLE_SA_EMAIL", "ACCESS_AUD"]) {
       expect(tomlString(key), key).toBeUndefined();
     }
   });

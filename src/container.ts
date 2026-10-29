@@ -3,8 +3,10 @@ import { D1CustomerRepository, SequentialKarteNumberAllocator } from "./adapters
 import { D1JudgmentRepository } from "./adapters/d1/D1JudgmentRepository";
 import { D1SendLogRepository } from "./adapters/d1/D1SendLogRepository";
 import { FixtureCalendarSource } from "./adapters/fixture/FixtureCalendarSource";
+import { GoogleCalendarSource } from "./adapters/google/GoogleCalendarSource";
+import { StaticAccessTokenProvider } from "./adapters/google/StaticAccessTokenProvider";
 import { SimulatedSender } from "./adapters/sender/SimulatedSender";
-import type { AppConfig, Env } from "./config";
+import { ConfigError, type AppConfig, type Env } from "./config";
 import { consoleLogger } from "./lib/logger";
 import type { CalendarSource } from "./ports/CalendarSource";
 import { systemClock } from "./ports/Clock";
@@ -17,8 +19,12 @@ export function createCalendarSource(config: AppConfig): CalendarSource {
   switch (config.calendarSource) {
     case "fixture":
       return new FixtureCalendarSource();
-    case "google":
-      throw new Error("Google カレンダー連携はステップ7で実装します");
+    case "google": {
+      const { calendarId, googleAccessToken } = config;
+      // loadConfig で検証済み。型を絞るための確認
+      if (!calendarId || !googleAccessToken) throw new ConfigError("Google カレンダーの設定が不足しています");
+      return new GoogleCalendarSource({ calendarId, tokens: new StaticAccessTokenProvider(googleAccessToken) });
+    }
   }
 }
 
