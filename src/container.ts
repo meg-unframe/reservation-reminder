@@ -7,6 +7,7 @@ import type { AppConfig, Env } from "./config";
 import { consoleLogger } from "./lib/logger";
 import type { CalendarSource } from "./ports/CalendarSource";
 import { systemClock } from "./ports/Clock";
+import type { ReadDeps } from "./usecases/adminViews";
 import type { CustomerDeps } from "./usecases/customers";
 import type { JudgmentDeps } from "./usecases/runDailyJudgment";
 
@@ -22,6 +23,15 @@ function createCalendarSource(config: AppConfig): CalendarSource {
 export function createCustomerDeps(env: Env): CustomerDeps {
   const customers = new D1CustomerRepository(env.DB);
   return { customers, allocator: new SequentialKarteNumberAllocator(customers), clock: systemClock };
+}
+
+export function createReadDeps(env: Env): ReadDeps {
+  return {
+    customers: new D1CustomerRepository(env.DB),
+    judgments: new D1JudgmentRepository(env.DB),
+    sendLogs: new D1SendLogRepository(env.DB),
+    clock: systemClock,
+  };
 }
 
 export function createJudgmentDeps(env: Env, config: AppConfig): JudgmentDeps {

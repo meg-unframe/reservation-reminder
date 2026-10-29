@@ -13,5 +13,6 @@ export interface SendLogRepository {
   insertIfAbsent(message: ReminderMessage, record: { retryKey: string; at: Date }): Promise<boolean>;
   /** JST の年月（YYYY-MM）内の送信数（月200通の無料枠の監視用） */
   countInJstMonth(monthKey: string): Promise<number>;
-  list(options: { targetDate?: string; limit: number }): Promise<SendLog[]>;
+  /** 新しい順。targetDate（予約日）か monthKey（記録した JST の年月）で絞り込める */
+  list(options: { targetDate?: string; monthKey?: string; limit: number }): Promise<SendLog[]>;
 }

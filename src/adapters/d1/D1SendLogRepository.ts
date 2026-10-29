@@ -43,11 +43,20 @@ export class D1SendLogRepository implements SendLogRepository {
     return row?.n ?? 0;
   }
 
-  async list({ targetDate, limit }: { targetDate?: string; limit: number }): Promise<SendLog[]> {
-    const stmt = targetDate
-      ? this.db.prepare(`SELECT ${COLUMNS} FROM send_logs WHERE target_date = ? ORDER BY id DESC LIMIT ?`).bind(targetDate, limit)
-      : this.db.prepare(`SELECT ${COLUMNS} FROM send_logs ORDER BY id DESC LIMIT ?`).bind(limit);
-    const { results } = await stmt.all<SendLogRow>();
+  async list({ targetDate, monthKey, limit }: { targetDate?: string; monthKey?: string; limit: number }): Promise<SendLog[]> {
+    const where: string[] = [];
+    const params: (string | number)[] = [];
+    if (targetDate) {
+      where.push("target_date = ?");
+      params.push(targetDate);
+    }
+    if (monthKey) {
+      const { from, to } = jstMonthRangeUtc(monthKey);
+      where.push("created_at >= ? AND created_at < ?");
+      params.push(from, to);
+    }
+    const sql = `SELECT ${COLUMNS} FROM send_logs ${where.length ? `WHERE ${where.join(" AND ")}` : ""} ORDER BY id DESC LIMIT ?`;
+    const { results } = await this.db.prepare(sql).bind(...params, limit).all<SendLogRow>();
     return results.map((r) => ({
       id: r.id,
       targetDate: r.target_date,

@@ -87,6 +87,15 @@ export async function previewDisplayNameImpact(
   return { customer, displayNameChanges: plan(all, customer) };
 }
 
+/** 論理削除の前に、残る同姓顧客の表示名がどう変わるかを確認するためのプレビュー（保存しない） */
+export async function previewDeactivation(
+  deps: Pick<CustomerDeps, "customers">,
+  karteNo: string,
+): Promise<CustomerChangeResult> {
+  const customer: Customer = { ...(await requireActive(deps.customers, karteNo)), status: "inactive" };
+  return { customer, displayNameChanges: plan(await deps.customers.listAll(), customer) };
+}
+
 export async function registerCustomer(deps: CustomerDeps, input: CustomerInput): Promise<CustomerChangeResult> {
   const values = validate(input);
   for (let attempt = 1; ; attempt++) {
