@@ -8,6 +8,7 @@
     "dev": "wrangler dev --test-scheduled",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:safety": "vitest run test/safety",
     "typecheck": "tsc --noEmit",
     "db:migrate:local": "wrangler d1 migrations apply reservation-reminder --local"
   },
