@@ -1,3 +1,4 @@
+import { D1ChangeAckRepository } from "./adapters/d1/D1ChangeAckRepository";
 import { D1CustomerRepository, SequentialKarteNumberAllocator } from "./adapters/d1/D1CustomerRepository";
 import { D1JudgmentRepository } from "./adapters/d1/D1JudgmentRepository";
 import { D1SendLogRepository } from "./adapters/d1/D1SendLogRepository";
@@ -9,9 +10,10 @@ import type { CalendarSource } from "./ports/CalendarSource";
 import { systemClock } from "./ports/Clock";
 import type { ReadDeps } from "./usecases/adminViews";
 import type { CustomerDeps } from "./usecases/customers";
+import type { ChangeDeps } from "./usecases/detectPostJudgmentChanges";
 import type { JudgmentDeps } from "./usecases/runDailyJudgment";
 
-function createCalendarSource(config: AppConfig): CalendarSource {
+export function createCalendarSource(config: AppConfig): CalendarSource {
   switch (config.calendarSource) {
     case "fixture":
       return new FixtureCalendarSource();
@@ -34,9 +36,18 @@ export function createReadDeps(env: Env): ReadDeps {
   };
 }
 
-export function createJudgmentDeps(env: Env, config: AppConfig): JudgmentDeps {
+export function createChangeDeps(env: Env, calendar: CalendarSource): ChangeDeps {
   return {
-    calendar: createCalendarSource(config),
+    calendar,
+    judgments: new D1JudgmentRepository(env.DB),
+    acks: new D1ChangeAckRepository(env.DB),
+    clock: systemClock,
+  };
+}
+
+export function createJudgmentDeps(env: Env, config: AppConfig, calendar = createCalendarSource(config)): JudgmentDeps {
+  return {
+    calendar,
     customers: new D1CustomerRepository(env.DB),
     judgments: new D1JudgmentRepository(env.DB),
     // 送信は常にシミュレーション（実送信の実装は存在しない）

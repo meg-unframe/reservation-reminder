@@ -1,8 +1,8 @@
 import { classifyEvent, type CustomerLookup, type CustomerLookupEntry } from "../domain/classify";
 import { computeDisplayNames } from "../domain/displayName";
-import { toJstDateString } from "../domain/jstDate";
+import { startsOnJstDate } from "../domain/jstDate";
 import { buildReminderMessage } from "../domain/template";
-import type { CalendarEvent, Customer } from "../domain/types";
+import type { Customer } from "../domain/types";
 import { errorCodeOf, type Logger } from "../lib/logger";
 import { withRetry } from "../lib/retry";
 import type { CalendarSource } from "../ports/CalendarSource";
@@ -50,11 +50,6 @@ export function buildCustomerLookup(
   return (karteNo) => entries.get(karteNo);
 }
 
-/** 予定開始日が対象日のものだけを残す（前日から日をまたぐ予定などを除く） */
-function startsOn(event: CalendarEvent, targetDate: string): boolean {
-  return event.allDay ? event.startAt === targetDate : toJstDateString(new Date(event.startAt)) === targetDate;
-}
-
 /**
  * 対象日の予約を判定し、スナップショットを保存して通知対象の送信をシミュレーションする。
  * - 定時（cron / cron_retry）は、同日の定時判定が既に成功していれば何もしない
@@ -85,7 +80,7 @@ export async function runDailyJudgment(
     const lookup = buildCustomerLookup(customers, history);
 
     const items: JudgmentItem[] = events
-      .filter((e) => startsOn(e, targetDate))
+      .filter((e) => startsOnJstDate(e, targetDate))
       .map((e) => {
         // 説明欄はメニュー抽出にのみ使い、スナップショットには保存しない
         const { description: _description, ...event } = e;

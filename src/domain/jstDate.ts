@@ -53,6 +53,11 @@ export function jstMonthRangeUtc(monthKey: string): { from: string; to: string }
   return { from: toUtc(first), to: toUtc(nextFirst) };
 }
 
+/** 予定が対象日（JST）に始まるか。前日から日をまたぐ予定などを除くために使う */
+export function startsOnJstDate(event: { allDay: boolean; startAt: string }, date: string): boolean {
+  return event.allDay ? event.startAt === date : toJstDateString(new Date(event.startAt)) === date;
+}
+
 /** 時刻を「YYYY-MM-DDTHH:mm:ss+09:00」形式にする */
 export function toJstIsoString(instant: Date): string {
   return `${new Date(instant.getTime() + JST_OFFSET_MS).toISOString().slice(0, 19)}+09:00`;

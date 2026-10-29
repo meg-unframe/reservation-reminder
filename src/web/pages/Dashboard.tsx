@@ -2,10 +2,22 @@ import type { FC } from "hono/jsx";
 import type { Dashboard } from "../../usecases/adminViews";
 import { formatDate, formatDateTime, RUN_STATUS_LABEL, TRIGGER_LABEL } from "../format";
 
-export const DashboardPage: FC<{ data: Dashboard }> = ({ data }) => {
+/** 明日分の判定後の未確認変更数。カレンダー取得に失敗した場合は "error" */
+export type PendingChanges = number | "error";
+
+export const DashboardPage: FC<{ data: Dashboard; pendingChanges: PendingChanges }> = ({ data, pendingChanges }) => {
   const { tomorrow, tomorrowRun, tomorrowCounts: counts, monthly } = data;
   return (
     <>
+      {pendingChanges === "error" && (
+        <p class="alert alert-ng">カレンダーを取得できず、判定後の変更を確認できませんでした。</p>
+      )}
+      {typeof pendingChanges === "number" && pendingChanges > 0 && (
+        <p class="alert alert-warn">
+          明日の予約に、判定後の変更（追加・変更・削除）が {pendingChanges} 件あります。
+          <a href={`/changes?date=${tomorrow}`}>判定後の変更を確認</a>してください。
+        </p>
+      )}
       {data.failedDates.map((date) => (
         <p class="alert alert-ng">
           {formatDate(date)}分の判定が失敗したままです。<a href={`/judgments?date=${date}`}>実行記録を確認</a>し、
@@ -42,6 +54,13 @@ export const DashboardPage: FC<{ data: Dashboard }> = ({ data }) => {
           <div class="value">{counts ? `${counts.notify} / ${counts.review} / ${counts.excluded}` : "—"}</div>
           <div class="muted">
             <a href={`/judgments?date=${tomorrow}`}>判定結果を見る</a>
+          </div>
+        </div>
+        <div class="card stat">
+          <div class="label">判定後の変更（未確認）</div>
+          <div class="value">{typeof pendingChanges === "number" && tomorrowRun ? `${pendingChanges} 件` : "—"}</div>
+          <div class="muted">
+            <a href={`/changes?date=${tomorrow}`}>判定後の変更を見る</a>
           </div>
         </div>
         <div class="card stat">

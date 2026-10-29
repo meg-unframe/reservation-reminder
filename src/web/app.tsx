@@ -1,16 +1,25 @@
-import { Hono } from "hono";
+import { Hono, type Context } from "hono";
 import { csrf } from "hono/csrf";
 import { HTTPException } from "hono/http-exception";
 import { NONCE, secureHeaders } from "hono/secure-headers";
 import { loadConfig } from "../config";
-import { createCustomerDeps, createJudgmentDeps, createReadDeps } from "../container";
+import { createCalendarSource, createChangeDeps, createCustomerDeps, createJudgmentDeps, createReadDeps } from "../container";
 import { isValidDateString, toJstMonthKey, tomorrowInJst } from "../domain/jstDate";
 import { consoleLogger, errorCodeOf } from "../lib/logger";
+import type { CalendarSource } from "../ports/CalendarSource";
 import { getDashboard, getJudgmentView, getMonthlyUsage } from "../usecases/adminViews";
+import {
+  acknowledgeChange,
+  detectPostJudgmentChanges,
+  type ChangesView,
+  UnknownChangeError,
+  unackedCount,
+} from "../usecases/detectPostJudgmentChanges";
 import { runDailyJudgment } from "../usecases/runDailyJudgment";
 import { seedFixtureCustomers } from "../usecases/seedFixtureCustomers";
 import { accessAuth, type AccessAuthOptions } from "./middleware/accessAuth";
-import { DashboardPage } from "./pages/Dashboard";
+import { ChangesPage } from "./pages/Changes";
+import { DashboardPage, type PendingChanges } from "./pages/Dashboard";
 import { JudgmentPage } from "./pages/Judgment";
 import { ManualJudgePage } from "./pages/ManualJudge";
 import { SendLogsPage } from "./pages/SendLogs";
@@ -20,8 +29,15 @@ import type { AppEnv } from "./types";
 
 const MONTH_PATTERN = /^\d{4}-\d{2}$/;
 
-export function createApp(options: { access?: AccessAuthOptions } = {}) {
+export interface AppOptions {
+  access?: AccessAuthOptions;
+  /** テスト用: 予約の取得元を差し替える（既定は設定に従う） */
+  calendar?: CalendarSource;
+}
+
+export function createApp(options: AppOptions = {}) {
   const app = new Hono<AppEnv>();
+  const calendarOf = (c: Context<AppEnv>) => options.calendar ?? createCalendarSource(c.var.config);
 
   app.use(
     secureHeaders({
@@ -54,15 +70,50 @@ export function createApp(options: { access?: AccessAuthOptions } = {}) {
   app.use(accessAuth(options.access));
   app.use(csrf());
 
-  app.get("/", async (c) =>
-    render(c, { title: "ダッシュボード", path: "/", body: <DashboardPage data={await getDashboard(createReadDeps(c.env))} /> }),
-  );
+  app.get("/", async (c) => {
+    const data = await getDashboard(createReadDeps(c.env));
+    let pendingChanges: PendingChanges;
+    try {
+      pendingChanges = unackedCount(await detectPostJudgmentChanges(createChangeDeps(c.env, calendarOf(c)), data.tomorrow));
+    } catch (e) {
+      // カレンダー取得の失敗でダッシュボード全体を止めない
+      consoleLogger.error("dashboard.changes_failed", { errorCode: errorCodeOf(e) });
+      pendingChanges = "error";
+    }
+    return render(c, { title: "ダッシュボード", path: "/", body: <DashboardPage data={data} pendingChanges={pendingChanges} /> });
+  });
 
   app.get("/judgments", async (c) => {
     const deps = createReadDeps(c.env);
     const q = c.req.query("date");
     const date = q && isValidDateString(q) ? q : tomorrowInJst(deps.clock.now());
     return render(c, { title: "判定結果", path: "/judgments", body: <JudgmentPage view={await getJudgmentView(deps, date)} /> });
+  });
+
+  app.get("/changes", async (c) => {
+    const q = c.req.query("date");
+    const date = q && isValidDateString(q) ? q : tomorrowInJst(new Date());
+    let view: ChangesView | undefined;
+    try {
+      view = await detectPostJudgmentChanges(createChangeDeps(c.env, calendarOf(c)), date);
+    } catch (e) {
+      consoleLogger.error("changes.failed", { targetDate: date, errorCode: errorCodeOf(e) });
+    }
+    return render(c, { title: "判定後の変更", path: "/changes", body: <ChangesPage date={date} view={view} /> });
+  });
+
+  app.post("/changes/ack", async (c) => {
+    const body = await c.req.parseBody();
+    const date = field(body, "date");
+    if (!isValidDateString(date)) return c.text("対象日が不正です", 422);
+    try {
+      await acknowledgeChange(createChangeDeps(c.env, calendarOf(c)), date, field(body, "fingerprint"));
+    } catch (e) {
+      // 既に内容が変わった・存在しない変更は記録しない
+      if (e instanceof UnknownChangeError) return c.text("指定された変更は現在の差分にありません。画面を再読み込みしてください。", 409);
+      throw e;
+    }
+    return c.redirect(`/changes?date=${date}&msg=acked`, 303);
   });
 
   app.get("/send-logs", async (c) => {
@@ -93,7 +144,7 @@ export function createApp(options: { access?: AccessAuthOptions } = {}) {
       });
     }
     try {
-      await runDailyJudgment(createJudgmentDeps(c.env, c.var.config), { targetDate: date, trigger: "manual" });
+      await runDailyJudgment(createJudgmentDeps(c.env, c.var.config, calendarOf(c)), { targetDate: date, trigger: "manual" });
     } catch {
       return render(c, {
         title: "手動判定",

@@ -5,6 +5,7 @@ export const FLASH_MESSAGES = {
   updated: "顧客情報を更新しました。",
   deactivated: "顧客を論理削除しました。カルテ番号は欠番として残ります。",
   judged: "手動判定を実行しました。",
+  acked: "確認済みにしました。",
 } as const;
 export type FlashCode = keyof typeof FLASH_MESSAGES;
 
@@ -15,6 +16,7 @@ export function flashOf(code: string | undefined): string | undefined {
 const NAV = [
   { href: "/", label: "ダッシュボード" },
   { href: "/judgments", label: "判定結果" },
+  { href: "/changes", label: "判定後の変更" },
   { href: "/send-logs", label: "送信ログ" },
   { href: "/customers", label: "顧客マスタ" },
   { href: "/judge", label: "手動判定" },
