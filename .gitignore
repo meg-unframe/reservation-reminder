@@ -1,0 +1,15 @@
+node_modules/
+dist/
+coverage/
+.wrangler/
+
+# 秘密情報（実値はリポジトリに含めない）
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+*.pem
+*service-account*.json
+.env
+.env.*
+
+.DS_Store

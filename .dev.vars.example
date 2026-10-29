@@ -1,0 +1,14 @@
+# ローカル開発用の環境変数サンプル。`.dev.vars` にコピーして使う（.dev.vars はコミットしない）
+ENVIRONMENT=local
+
+# --- Google連携（ステップ7で使用。テスト用カレンダー専用のサービスアカウント）---
+# CALENDAR_SOURCE=google
+# CALENDAR_ID=xxxxxxxx@group.calendar.google.com
+# GOOGLE_SA_EMAIL=reminder-test@your-project.iam.gserviceaccount.com
+# GOOGLE_SA_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+
+# --- Cloudflare Access（本番のみ。ローカルでは不要）---
+# ACCESS_TEAM_DOMAIN=your-team.cloudflareaccess.com
+# ACCESS_AUD=xxxxxxxx
+
+# LINE関連の変数は初期段階では存在しない（実装しない）

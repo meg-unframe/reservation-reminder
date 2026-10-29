@@ -1,0 +1,23 @@
+name = "reservation-reminder"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+
+# 18:00 JST の定時判定と、10分後の保険実行（当日の成功判定が無い場合のみ動く）
+[triggers]
+crons = ["0 9 * * *", "10 9 * * *"]
+
+[vars]
+# 既定は本番扱い。認証バイパスはローカル（.dev.vars で ENVIRONMENT=local）のみ
+ENVIRONMENT = "production"
+# 初期段階はシミュレーション固定。これ以外の値では起動しない
+SEND_MODE = "simulation"
+# fixture: 架空予定JSON / google: テスト用Googleカレンダー
+CALENDAR_SOURCE = "fixture"
+CALENDAR_ID = ""
+
+[[d1_databases]]
+binding = "DB"
+database_name = "reservation-reminder"
+# ローカル開発用のダミーID。リモートD1作成時に置き換える
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"
